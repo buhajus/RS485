@@ -8,11 +8,14 @@ import com.ghgande.j2mod.modbus.net.SerialConnection;
 import com.ghgande.j2mod.modbus.util.SerialParameters;
 
 import java.nio.charset.StandardCharsets;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Set;
 
 public class RS485 {
     public static void main(String[] args) {
         String portName = "COM10"; // Replace with the appropriate port name
-        int slaveId = 1; // Modbus slave device ID
+        int slaveId = 4; // Modbus slave device ID
         int startAddress = 0; // Starting address of the registers
         int numRegisters = 9; // Number of registers to read
 
@@ -46,14 +49,24 @@ public class RS485 {
 
             transaction.execute();
             response = (ReadMultipleRegistersResponse) transaction.getResponse();
-   
+
 
             if (response != null) {
+                HashMap< Integer, Integer> list = new HashMap<>();
                 // Read successful, process the response
                 for (int i = 0; i < numRegisters; i++) {
+
                     int registerAddress = startAddress + i;
                     int registerValue = response.getRegisterValue(i);
+                    list.put(registerAddress, registerValue);
+
                     System.out.println("Register " + registerAddress + ": " + registerValue);
+                }
+                System.out.println(list);
+                if(list.get(0) < 200){
+                    System.out.println("lower");
+                }else {
+                    System.out.println("ok");
                 }
             } else {
                 // Read failed, handle the error
