@@ -7,23 +7,21 @@ import com.ghgande.j2mod.modbus.msg.ReadMultipleRegistersResponse;
 import com.ghgande.j2mod.modbus.net.SerialConnection;
 import com.ghgande.j2mod.modbus.util.SerialParameters;
 
-import java.nio.charset.StandardCharsets;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Set;
+import java.util.*;
 
 public class RS485 {
     public static void main(String[] args) {
-        String portName = "COM10"; // Replace with the appropriate port name
-        int slaveId = 4; // Modbus slave device ID
-        int startAddress = 0; // Starting address of the registers
-        int numRegisters = 9; // Number of registers to read
+        String portName = "COM6"; // Replace with the appropriate port name
+        int slaveId = 1; // Modbus slave device ID
+        int startAddress = 1000; // Starting address of the registers
+        int numRegisters = 10; // Number of registers to read
+        int[] addresses = {1000, 1001, 1003, 1008}; // number of addresses in slave
 
         RS485 reader = new RS485();
-        reader.readModbusRegisters(portName, slaveId, startAddress, numRegisters);
+        reader.readModbusRegisters(portName, slaveId, startAddress, numRegisters, addresses);
     }
 
-    public void readModbusRegisters(String portName, int slaveId, int startAddress, int numRegisters) {
+    public void readModbusRegisters(String portName, int slaveId, int startAddress, int numRegisters, int[] addresses) {
         SerialParameters parameters = new SerialParameters();
         parameters.setPortName(portName);
         parameters.setBaudRate(9600);
@@ -52,20 +50,30 @@ public class RS485 {
 
 
             if (response != null) {
-                HashMap< Integer, Integer> list = new HashMap<>();
+                HashMap<Integer, Double> list = new HashMap<>();
+
+
                 // Read successful, process the response
                 for (int i = 0; i < numRegisters; i++) {
 
+
                     int registerAddress = startAddress + i;
-                    int registerValue = response.getRegisterValue(i);
-                    list.put(registerAddress, registerValue);
+                    double registerValue = response.getRegisterValue(i);
+
+                    for (int temp : addresses) {
+                        if (registerAddress == temp) {
+                            //if address exist in array - add to list
+                            list.put(registerAddress, registerValue / 100);
+                        }
+                    }
+
 
                     System.out.println("Register " + registerAddress + ": " + registerValue);
                 }
                 System.out.println(list);
-                if(list.get(0) < 200){
+                if (list.get(startAddress) < 200) {
                     System.out.println("lower");
-                }else {
+                } else {
                     System.out.println("ok");
                 }
             } else {
